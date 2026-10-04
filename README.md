@@ -4,7 +4,7 @@ A wallpaper-first frosted glass Discord theme by **PixelFF**.
 
 PrismPane is designed around translucent panels, clean readability, and the PixelFF cyan / blue / purple / magenta accent palette.
 
-It works on its own with a bundled default wallpaper, or can be paired with **PrismPick** to browse and switch wallpapers directly from Vencord.
+It works on its own with a hosted default wallpaper, or can be paired with **PrismPick** to browse and switch wallpapers directly from Vencord.
 
 ---
 
