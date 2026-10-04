@@ -8,6 +8,14 @@ It works on its own with a hosted default wallpaper, or can be paired with **Pri
 
 ---
 
+## Download
+
+[Download the latest PrismPane release](https://github.com/PixelFFHQ/PrismPane/releases/latest)
+
+Install `PrismPane.theme.css` through Vencord's Themes settings.
+
+---
+
 ## Features
 
 - Frosted glass-style Discord interface
