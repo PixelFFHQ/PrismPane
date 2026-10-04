@@ -1,0 +1,1870 @@
+/**
+ * @name PrismPane
+ * @description A clean glass-style Discord theme designed to pair with PrismPick.
+ * @author Hush / PixelFF
+ * @version 0.3.2
+ */
+
+/*
+ * ============================================================
+ * PrismPane Theme
+ * ============================================================
+ *
+ * Purpose:
+ * - Provide a proper readable theme for custom Discord wallpapers.
+ * - Pair cleanly with the PrismPick Vencord plugin.
+ * - Keep wallpaper selection separate from theme styling.
+ *
+ * The PrismPick plugin should control:
+ *
+ * --background-image-url
+ *
+ * This theme handles:
+ * - wallpaper display
+ * - dimming
+ * - blur
+ * - panel transparency
+ * - readable text
+ * - borders
+ * - accent colors
+ *
+ * Future maintenance:
+ * Discord changes internal class names regularly.
+ * Prefer Discord variables and broad selectors where possible.
+ */
+
+
+/* ============================================================
+ * USER SETTINGS
+ * ============================================================
+ *
+ * These are the values we expect users to customize.
+ */
+
+:root {
+    /*
+     * PrismPick writes to this variable.
+     *
+     * Leave empty here.
+     * The plugin will replace it dynamically.
+     */
+    --background-image-url: url("https://pixelffhq.github.io/PrismPick-Wallpapers/backgrounds/PrismPane-Default.png");
+    /*
+     * Wallpaper appearance.
+     */
+    --pixelff-bg-size: cover;
+    --pixelff-bg-position: center;
+    --pixelff-bg-repeat: no-repeat;
+    /*
+     * Wallpaper dimming.
+     *
+     * 0 = no dimming
+     * 1 = completely black
+     *
+     * Recommended:
+     * 0.20 - 0.40
+     */
+    --pixelff-bg-dim: 0.08;
+    /*
+     * Background blur.
+     *
+     * Keep fairly low for performance.
+     */
+    --pixelff-bg-blur: 0px;
+    /*
+     * Main translucent panel colors.
+     */
+    --pixelff-panel: rgba(255, 255, 255, 0.08);
+    --pixelff-panel-soft: rgba(255, 255, 255, 0.045);
+    --pixelff-panel-strong: rgba(255, 255, 255, 0.11);
+    /*
+     * Borders.
+     */
+    --pixelff-border: rgba(255, 255, 255, 0.14);
+    --pixelff-border-strong: rgba(255, 255, 255, 0.22);
+    /*
+     * Radius.
+     */
+    --pixelff-radius: 12px;
+    /*
+     * PixelFF accent family.
+     *
+     * Cyan / magenta / blue / purple.
+     */
+    --pixelff-cyan: #41e6ff;
+    --pixelff-blue: #4f7cff;
+    --pixelff-purple: #8b5cff;
+    --pixelff-magenta: #ff4fd8;
+    /*
+     * Main theme accent system.
+     *
+     * Purple remains the primary identity color.
+     * Cyan is used for crisp active edges and links.
+     * Magenta is reserved for attention states such as mentions/unreads.
+     * Blue bridges the palette inside selected fills and gradients.
+     */
+    --pixelff-accent: var(--pixelff-purple);
+    --pixelff-accent-secondary: var(--pixelff-cyan);
+    --pixelff-accent-attention: var(--pixelff-magenta);
+    --pixelff-accent-blue: var(--pixelff-blue);
+    /*
+     * Reusable PixelFF gradient.
+     *
+     * Kept subtle in actual UI elements so the theme stays readable instead
+     * of turning every control into a neon sign.
+     */
+    --pixelff-gradient: linear-gradient( 90deg, var(--pixelff-cyan), var(--pixelff-blue), var(--pixelff-purple), var(--pixelff-magenta) );
+    /*
+     * Text shadow used for readability over bright wallpaper areas.
+     */
+    --pixelff-text-shadow: 0 1px 2px rgba(0, 0, 0, 0.75);
+    /*
+     * Text for the status bar at the bottom left.
+     */
+    --pixelff-user-name-size: 18px;
+    --pixelff-user-status-size: 15px;
+}
+
+
+/* ============================================================
+ * BASE DOCUMENT + WALLPAPER
+ * ============================================================
+ *
+ * IMPORTANT FOUNDATION:
+ *
+ * The wallpaper is applied directly to body rather than being placed
+ * on a negative-z-index pseudo-element. Current Discord views such as
+ * Friends / Home / DMs can create their own stacking contexts, which
+ * can hide a negative-z-index wallpaper even when server chat works.
+ *
+ * Keeping the wallpaper on body gives every transparent Discord
+ * surface the same dependable background underneath it.
+ */
+
+html,
+#app-mount {
+    background: transparent !important;
+}
+
+body {
+    /*
+     * Dark fallback if no image has been selected yet.
+     */
+    background-color: #0b0e14 !important;
+
+    /*
+     * First layer = adjustable dimming.
+     * Second layer = image selected by PrismPick.
+     */
+    background-image:
+        linear-gradient(
+            rgba(0, 0, 0, var(--pixelff-bg-dim)),
+            rgba(0, 0, 0, var(--pixelff-bg-dim))
+        ),
+        var(--background-image-url) !important;
+
+    background-size:
+        cover,
+        var(--pixelff-bg-size) !important;
+
+    background-position:
+        center,
+        var(--pixelff-bg-position) !important;
+
+    background-repeat:
+        no-repeat,
+        var(--pixelff-bg-repeat) !important;
+
+    background-attachment:
+        fixed,
+        fixed !important;
+}
+
+/*
+ * Discord's visual-refresh app shell paints its own base layer.
+ * Keep that layer transparent so body remains visible underneath.
+ */
+#app-mount > [class*="app_"] > [class*="app_"] > [class*="bg_"] {
+    background: transparent !important;
+}
+
+/*
+ * --pixelff-bg-blur is intentionally reserved for a later optional
+ * implementation. Applying filter blur to the old pseudo-element
+ * wallpaper was part of the stacking-context problem fixed above.
+ */
+
+
+/* ============================================================
+ * DISCORD BACKGROUND VARIABLES
+ * ============================================================
+ *
+ * Use translucent colors rather than forcing every Discord variable
+ * fully transparent. This keeps text readable and, importantly, also
+ * covers Home / Friends / DMs where Discord relies heavily on these
+ * variables instead of the normal chat selectors.
+ */
+
+.theme-dark {
+    --background-base-lowest: rgba(255, 255, 255, 0.06) !important;
+    --background-base-lower: rgba(255, 255, 255, 0.05) !important;
+    --background-base-low: rgba(255, 255, 255, 0.04) !important;
+
+    --background-primary: rgba(255, 255, 255, 0.055) !important;
+    --background-secondary: rgba(255, 255, 255, 0.045) !important;
+    --background-secondary-alt: rgba(255, 255, 255, 0.035) !important;
+    --background-tertiary: rgba(255, 255, 255, 0.03) !important;
+
+    --bg-base-primary: rgba(255, 255, 255, 0.055) !important;
+    --bg-base-secondary: rgba(255, 255, 255, 0.045) !important;
+    --bg-base-tertiary: rgba(255, 255, 255, 0.035) !important;
+
+    --channeltextarea-background: rgba(255, 255, 255, 0.07) !important;
+
+    --background-message-hover: rgba(255, 255, 255, 0.07) !important;
+    --background-modifier-hover: rgba(255, 255, 255, 0.08) !important;
+    --background-modifier-active: rgba(255, 255, 255, 0.11) !important;
+    --background-modifier-selected: rgba(255, 255, 255, 0.13) !important;
+    --background-modifier-accent: rgba(255, 255, 255, 0.08) !important;
+}
+
+
+/* ============================================================
+ * MAIN APP SURFACES
+ * ============================================================
+ *
+ * Keep these selectors deliberately narrow.
+ *
+ * Earlier revisions used broad selectors such as [class*="content_"],
+ * which could accidentally flatten unrelated Discord pages and
+ * components. These target the actual visual-refresh workspaces.
+ */
+
+/* Normal server / channel workspace */
+.visual-refresh [class*="chat_"],
+.visual-refresh [class*="chatContent_"],
+.visual-refresh [class*="messagesWrapper_"],
+.visual-refresh [class*="sidebarList_"],
+.visual-refresh [class*="membersWrap_"],
+.visual-refresh [class*="members_"] {
+    background-color: transparent !important;
+}
+
+/* Home / Friends / Direct Messages workspace */
+.visual-refresh nav[class*="privateChannels_"] {
+    background-color: rgba(10, 12, 18, 0.44) !important;
+}
+
+.visual-refresh [class*="peopleColumn_"],
+.visual-refresh [class*="tabBody_"] {
+    background-color: rgba(12, 15, 22, 0.30) !important;
+}
+
+.visual-refresh [class*="nowPlayingColumn_"] {
+    background-color: rgba(10, 12, 18, 0.40) !important;
+}
+
+
+/* ============================================================
+ * SERVER LIST
+ * ============================================================
+ */
+
+[class*="guilds_"] {
+    background: rgba(8, 10, 15, 0.42) !important;
+    border-right: 1px solid var(--pixelff-border);
+}
+
+/* ============================================================
+ * PIXELFF SERVER INDICATORS
+ * ============================================================
+ *
+ * Server rail indicators:
+ *
+ * - Unread servers use a static PixelFF magenta marker.
+ * - The currently selected server smoothly cycles from
+ *   cyan -> magenta -> cyan.
+ *
+ * Current Discord 2026 server rail uses item__58105 for both
+ * unread markers and the taller selected-server strip.
+ */
+
+/*
+ * Unread servers that are NOT currently selected.
+ */
+#app-mount
+.guilds__5e434
+.listItem__650eb:not(:has(.selected__6e9f8))
+.item__58105 {
+    background-color: var(--pixelff-magenta) !important;
+    box-shadow: 0 0 6px color-mix( in srgb, var(--pixelff-magenta) 55%, transparent ) !important;
+}
+
+
+/*
+ * Active server animation.
+ */
+@keyframes pixelff-active-server-indicator {
+    0%, 100% {
+        background-color: var(--pixelff-cyan);
+        box-shadow: 0 0 6px color-mix( in srgb, var(--pixelff-cyan) 70%, transparent );
+    }
+
+    50% {
+        background-color: var(--pixelff-magenta);
+        box-shadow: 0 0 8px color-mix( in srgb, var(--pixelff-magenta) 70%, transparent );
+    }
+}
+
+
+/*
+ * Currently selected server.
+ */
+#app-mount
+.guilds__5e434
+.listItem__650eb:has(.selected__6e9f8)
+.item__58105 {
+    animation: pixelff-active-server-indicator 2.4s ease-in-out infinite;
+}
+
+
+/*
+ * Accessibility:
+ * honor operating-system reduced-motion preferences.
+ */
+@media (prefers-reduced-motion: reduce) {
+    #app-mount
+    .guilds__5e434
+    .listItem__650eb:has(.selected__6e9f8)
+    .item__58105 {
+        animation: none !important;
+        background-color: var(--pixelff-cyan) !important;
+        box-shadow: 0 0 6px color-mix( in srgb, var(--pixelff-cyan) 60%, transparent ) !important;
+    }
+}
+
+
+/* ============================================================
+ * SIDEBAR / CHANNEL LIST
+ * ============================================================
+ */
+
+[class*="sidebar_"] {
+    background: rgba(10, 12, 18, 0.44) !important;
+    border-right: 1px solid var(--pixelff-border);
+}
+
+/* ============================================================
+ * PIXELFF CHANNEL LIST
+ * ============================================================
+ *
+ * A brighter, more structured channel list inspired by the idea
+ * of high-contrast grouped navigation, but styled specifically
+ * for the PixelFF cyan / blue / purple / magenta palette.
+ *
+ * Current Discord channel classes:
+ * - wrapper__2ea32
+ * - link__2ea32
+ * - name__2ea32
+ * - icon__2ea32
+ * - modeSelected__2ea32
+ * - modeUnreadImportant__2ea32
+ * - modeMuted__2ea32
+ *
+ * Category classes:
+ * - containerDefault__29444
+ * - wrapper__29444
+ * - name__29444
+ */
+
+
+/* ------------------------------------------------------------
+ * NORMAL CHANNELS
+ * ------------------------------------------------------------
+ */
+
+/*
+ * Slightly increase spacing and give each channel a cleaner row.
+ */
+#channels [class*="wrapper__2ea32"] {
+    margin: 2px 5px !important;
+    border-radius: 7px !important;
+}
+
+
+/*
+ * Default channel names.
+ *
+ * Keep them neutral enough that unread and selected channels
+ * still have somewhere brighter to go.
+ */
+#channels [class*="name__2ea32"] {
+    color: rgba(220, 230, 240, 0.72) !important;
+    transition: color 0.15s ease, text-shadow 0.15s ease;
+}
+
+
+/*
+ * Default channel icons.
+ */
+#channels [class*="icon__2ea32"] {
+    color: rgba(180, 200, 215, 0.62) !important;
+    transition: color 0.15s ease, filter 0.15s ease;
+}
+
+
+/* ------------------------------------------------------------
+ * CHANNEL HOVER
+ * ------------------------------------------------------------
+ */
+
+#channels [class*="wrapper__2ea32"]:hover {
+    background: linear-gradient( 90deg, color-mix( in srgb, var(--pixelff-cyan) 9%, transparent ), color-mix( in srgb, var(--pixelff-purple) 7%, transparent ) ) !important;
+}
+
+    #channels [class*="wrapper__2ea32"]:hover [class*="name__2ea32"],
+    #channels [class*="wrapper__2ea32"]:hover [class*="icon__2ea32"] {
+        color: var(--pixelff-cyan) !important;
+    }
+
+
+/* ------------------------------------------------------------
+ * UNREAD CHANNELS
+ * ------------------------------------------------------------
+ */
+
+/*
+ * Unread channel text becomes brighter cyan.
+ */
+#channels [class*="modeUnreadImportant__2ea32"] [class*="name__2ea32"],
+#channels [class*="modeUnreadImportant__2ea32"] [class*="icon__2ea32"] {
+    color: var(--pixelff-cyan) !important;
+}
+
+
+/*
+ * Small magenta unread marker on the left.
+ */
+#channels [class*="modeUnreadImportant__2ea32"]::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 12px;
+    border-radius: 0 4px 4px 0;
+    background: var(--pixelff-magenta);
+    box-shadow: 0 0 6px color-mix( in srgb, var(--pixelff-magenta) 55%, transparent );
+}
+
+
+/* ------------------------------------------------------------
+ * SELECTED CHANNEL
+ * ------------------------------------------------------------
+ */
+
+#channels [class*="modeSelected__2ea32"] {
+    position: relative;
+}
+
+
+    /*
+ * Selected channel gets the strongest treatment.
+ */
+    #channels [class*="modeSelected__2ea32"] [class*="link__2ea32"] {
+        background: linear-gradient( 90deg, color-mix( in srgb, var(--pixelff-cyan) 18%, rgba(255, 255, 255, 0.04) ), color-mix( in srgb, var(--pixelff-blue) 13%, transparent ), color-mix( in srgb, var(--pixelff-purple) 12%, transparent ) ) !important;
+        border-radius: 7px !important;
+        box-shadow: inset 3px 0 0 var(--pixelff-cyan);
+    }
+
+
+    /*
+ * Bright selected text/icon.
+ */
+    #channels [class*="modeSelected__2ea32"] [class*="name__2ea32"],
+    #channels [class*="modeSelected__2ea32"] [class*="icon__2ea32"] {
+        color: white !important;
+        text-shadow: 0 0 6px color-mix( in srgb, var(--pixelff-cyan) 35%, transparent );
+    }
+
+
+/* ------------------------------------------------------------
+ * MUTED CHANNELS
+ * ------------------------------------------------------------
+ */
+
+#channels [class*="modeMuted__2ea32"] [class*="name__2ea32"],
+#channels [class*="modeMuted__2ea32"] [class*="icon__2ea32"] {
+    color: rgba(180, 190, 200, 0.35) !important;
+}
+
+
+/* ------------------------------------------------------------
+ * CATEGORY HEADERS
+ * ------------------------------------------------------------
+ */
+
+/*
+ * Give categories a little more separation from the channels.
+ */
+#channels [class*="containerDefault__29444"] {
+    margin-top: 10px !important;
+}
+
+
+/*
+ * Category heading text.
+ */
+#channels [class*="wrapper__29444"] [class*="name__29444"] {
+    color: color-mix( in srgb, var(--pixelff-cyan) 72%, white ) !important;
+    font-size: 12px !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.4px;
+    text-transform: none;
+    text-shadow: 0 0 5px color-mix( in srgb, var(--pixelff-cyan) 25%, transparent );
+}
+
+
+/*
+ * Gradient divider running behind / beside category headings.
+ */
+#channels [class*="containerDefault__29444"]::before {
+    content: "";
+    display: block;
+    height: 1px;
+    margin: 0 8px 5px;
+    background: linear-gradient( 90deg, var(--pixelff-cyan), var(--pixelff-blue), var(--pixelff-purple), transparent );
+    opacity: 0.55;
+}
+
+
+/* ------------------------------------------------------------
+ * CATEGORY COLLAPSE ARROW
+ * ------------------------------------------------------------
+ */
+
+#channels [class*="wrapper__29444"] [class*="icon__29444"] {
+    color: var(--pixelff-purple) !important;
+}
+
+
+/* ------------------------------------------------------------
+ * CHANNEL ACTION ICONS
+ * ------------------------------------------------------------
+ *
+ * Settings / invite / create buttons stay subtle until hover.
+ */
+
+#channels [class*="iconItem_c69b6d"] {
+    color: rgba(255, 255, 255, 0.42) !important;
+}
+
+    #channels [class*="iconItem_c69b6d"]:hover {
+        color: var(--pixelff-cyan) !important;
+    }
+
+/* ============================================================
+ * CHAT AREA
+ * ============================================================
+ */
+
+.visual-refresh [class*="chat_"],
+.visual-refresh [class*="chatContent_"] {
+    background: rgba(12, 15, 22, 0.3) !important;
+}
+
+
+/* ============================================================
+ * MEMBER LIST
+ * ============================================================
+ */
+
+[class*="membersWrap_"],
+[class*="members_"] {
+    background: rgba(10, 12, 18, 0.40) !important;
+}
+
+/* ============================================================
+ * COMPACT MEMBER LIST
+ * ============================================================
+ *
+ * Reduce the width of the right-side member list.
+ * Especially useful on vertical / portrait monitors.
+ *
+ * Default Discord member list is roughly 240px.
+ * 140px gives us a much more compact layout without completely
+ * crushing avatars and usernames.
+ */
+
+[class*="membersWrap_"] {
+    width: 170px !important;
+    min-width: 170px !important;
+}
+
+[class*="members_"] {
+    width: 170px !important;
+}
+
+/* ============================================================
+ * COMPACT CHANNEL / ROOM LIST
+ * ============================================================
+ *
+ * Reduce the visible channel / room list width.
+ * The broader sidebar wrapper does not always control the
+ * actual rendered channel-column width in current Discord.
+ */
+
+[class*="sidebarList_"] {
+    width: 165px !important;
+    min-width: 165px !important;
+    max-width: 165px !important;
+}
+
+/*
+ * Keep the surrounding sidebar shell from forcing the old width.
+ */
+[class*="sidebar_"] {
+    min-width: 165px !important;
+}
+
+/* ============================================================
+ * USER PANEL / BOTTOM LEFT
+ * ============================================================
+ */
+
+[class*="panels_"] {
+    background: rgba(7, 9, 14, 0.50) !important;
+    border-top: 1px solid var(--pixelff-border);
+}
+
+/* ============================================================
+ * COMPACT USER PANEL LAYOUT
+ * ============================================================
+ *
+ * Narrow sidebars do not have enough horizontal room for the
+ * identity section and every account control on one row.
+ *
+ * Row 1 = avatar + username/status
+ * Row 2 = microphone / deafen / settings controls
+ *
+ * Keep this section conservative. Broad descendant background rules
+ * caused several earlier regressions, so only the elements required
+ * for layout are modified here.
+ */
+
+/*
+ * Allow the bottom user panel to grow tall enough for two rows.
+ */
+[class*="panels_"] {
+    height: auto !important;
+    min-height: 88px !important;
+    overflow: visible !important;
+}
+
+/*
+ * Main account panel container.
+ */
+[class*="panels_"] > [class*="container_"] {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+
+    width: 100% !important;
+    height: auto !important;
+    min-height: 88px !important;
+    min-width: 0 !important;
+
+    padding: 6px !important;
+    gap: 4px !important;
+}
+
+/*
+ * Identity section gets the entire first row.
+ */
+[class*="panels_"] [class*="avatarWrapper_"] {
+    flex: 0 0 100% !important;
+
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+
+    display: flex !important;
+    align-items: center !important;
+
+    background: transparent !important;
+}
+
+/*
+ * Give the name/status area the remaining width.
+ */
+[class*="panels_"] [class*="nameTag_"] {
+    display: block !important;
+    flex: 1 1 auto !important;
+
+    min-width: 0 !important;
+    max-width: none !important;
+
+    overflow: hidden !important;
+}
+
+/*
+ * Keep the username visible and on one line.
+ */
+[class*="panels_"] [class*="username_"] {
+    display: block !important;
+
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+
+/*
+ * Discord nameplates are a separate decorative layer.
+ *
+ * Current 2026 Discord CSS commonly exposes them through a class
+ * containing "nameplated". Restrict this cleanup to the local
+ * User area so member-list and DM nameplates elsewhere are untouched.
+ */
+section[aria-label="User area"] [class*="nameplated"] {
+    padding-right: inherit !important;
+}
+
+section[aria-label="User area"]
+    [class*="nameplated"]
+    > div:first-child {
+    display: none !important;
+}
+
+/*
+ * Account controls become the entire second row.
+ */
+[class*="panels_"] [class*="buttons_"] {
+    flex: 0 0 100% !important;
+
+    width: 100% !important;
+    min-width: 0 !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-evenly !important;
+
+    gap: 2px !important;
+    overflow: visible !important;
+}
+
+/*
+ * Keep each control compact.
+ */
+[class*="panels_"] [class*="buttons_"] button {
+    flex: 0 0 auto !important;
+    margin: 0 !important;
+}
+
+/* ============================================================
+ * CENTERED STACKED USER IDENTITY
+ * ============================================================
+ *
+ * Put username on the first line and status on the second line,
+ * while keeping the whole identity area centered on the top row
+ * of the user card.
+ *
+ * Layout:
+ *
+ * Avatar   [ Hush ]
+ *          [ Idle ]
+ */
+
+/*
+ * Keep the avatar + text group centered across the first row.
+ */
+[class*="panels_"] [class*="avatarWrapper_"] {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+}
+
+/*
+ * Stack username and status vertically again.
+ */
+[class*="panels_"] [class*="nameTag_"] {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: flex-start !important;
+    gap: 1px !important;
+    flex: 0 1 auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    overflow: hidden !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+
+/*
+ * Username styling.
+ */
+[class*="panels_"] [class*="username_"] {
+    display: block !important;
+    font-size: 17px !important;
+    line-height: 20px !important;
+    font-weight: 750 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+
+/*
+ * Status styling.
+ */
+[class*="panels_"] [class*="subtext_"] {
+    display: block !important;
+    font-size: 14px !important;
+    line-height: 18px !important;
+    font-weight: 550 !important;
+    color: rgba(255, 255, 255, 0.82) !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+
+    /*
+ * Remove the bullet separator from the old inline layout.
+ */
+    [class*="panels_"] [class*="subtext_"]::before {
+        content: none !important;
+    }
+
+    /*
+ * If Discord wraps the status text in an inner hover-roll
+ * element, keep it clean and stacked.
+ */
+    [class*="panels_"] [class*="subtext_"] [class*="hoverRoll_"] {
+        display: block !important;
+        width: auto !important;
+        min-width: 0 !important;
+    }
+
+
+/* ============================================================
+ * TOP BARS / HEADERS
+ * ============================================================
+ *
+ * Keep Discord's Friends / DM / channel titlebars transparent.
+ *
+ * Do NOT put a background directly on [class*="title_"].
+ * Discord uses title classes on the actual title/text elements,
+ * which creates the black rectangles previously seen behind
+ * "Friends", channel names, etc.
+ *
+ * Current Discord uses:
+ * - container__9293f for Friends / Home-style titlebars
+ * - subtitleContainer_f75fb0 for channel titlebar wrappers
+ * - title_f75fb0 for the channel titlebar itself
+ */
+
+/* Friends / Home / Message Requests header */
+#app-mount .container__9293f {
+    background: transparent !important;
+    background-color: transparent !important;
+}
+
+/* Channel header outer wrapper */
+#app-mount .subtitleContainer_f75fb0 {
+    background: transparent !important;
+    background-color: transparent !important;
+}
+
+/* Channel header inner surface */
+#app-mount .title_f75fb0 {
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+}
+
+/*
+ * Safety cleanup for the actual title text itself.
+ */
+#app-mount [class*="title_"] {
+    background: transparent !important;
+    background-color: transparent !important;
+}
+
+
+/* ============================================================
+ * CHAT INPUT
+ * ============================================================
+ */
+
+[class*="channelTextArea_"] {
+    background: rgba(8, 10, 15, 0.82) !important;
+    border: 1px solid var(--pixelff-border);
+    border-radius: var(--pixelff-radius) !important;
+}
+
+[class*="scrollableContainer_"] {
+    background: transparent !important;
+}
+
+
+/* ============================================================
+ * POPOUTS / MENUS / MODALS
+ * ============================================================
+ */
+
+[class*="menu_"],
+[class*="popout_"],
+[class*="modal_"],
+[class*="root_"][role="dialog"] {
+    background: rgba(8, 10, 15, 0.94) !important;
+    backdrop-filter: blur(14px);
+    border: 1px solid var(--pixelff-border-strong);
+    border-radius: var(--pixelff-radius);
+}
+
+
+
+
+/* ============================================================
+ * BETTERSETTINGS / CENTERED SETTINGS MODAL
+ * ============================================================
+ *
+ * Current Vencord BetterSettings opens Settings inside a centered
+ * layer marked:
+ *
+ *     data-mana-component="layer-modal"
+ *
+ * This outer shell is separate from Discord's normal
+ * standardSidebarView. If the shell is not themed, Settings stays
+ * as a dark opaque slab even when the inner Settings page is styled.
+ *
+ * This section themes the actual BetterSettings modal first.
+ */
+
+/*
+ * Actual centered BetterSettings shell.
+ */
+#app-mount [data-mana-component="layer-modal"] {
+    --background-base-lowest: rgba(255, 255, 255, 0.085) !important;
+    --background-base-lower: rgba(255, 255, 255, 0.070) !important;
+    --background-base-low: rgba(255, 255, 255, 0.055) !important;
+
+    --background-primary: rgba(255, 255, 255, 0.060) !important;
+    --background-secondary: rgba(255, 255, 255, 0.050) !important;
+    --background-secondary-alt: rgba(255, 255, 255, 0.042) !important;
+    --background-tertiary: rgba(255, 255, 255, 0.036) !important;
+
+    --bg-base-primary: rgba(255, 255, 255, 0.060) !important;
+    --bg-base-secondary: rgba(255, 255, 255, 0.050) !important;
+    --bg-base-tertiary: rgba(255, 255, 255, 0.042) !important;
+
+    --modal-background: rgba(255, 255, 255, 0.050) !important;
+    --modal-footer-background: rgba(255, 255, 255, 0.040) !important;
+
+    background:
+        linear-gradient(
+            135deg,
+            color-mix(in srgb, var(--pixelff-cyan) 5%, rgba(255, 255, 255, 0.050)),
+            rgba(255, 255, 255, 0.040) 42%,
+            color-mix(in srgb, var(--pixelff-purple) 5%, rgba(255, 255, 255, 0.045)) 72%,
+            color-mix(in srgb, var(--pixelff-magenta) 4%, rgba(255, 255, 255, 0.045))
+        ) !important;
+
+    border:
+        1px solid
+        color-mix(
+            in srgb,
+            var(--pixelff-cyan) 18%,
+            var(--pixelff-border-strong)
+        ) !important;
+
+    border-radius:
+        14px !important;
+
+    box-shadow:
+        0 20px 70px rgba(0, 0, 0, 0.24),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+
+    backdrop-filter:
+        blur(18px)
+        saturate(1.12)
+        brightness(1.06) !important;
+
+    overflow:
+        hidden !important;
+}
+
+/*
+ * Discord sometimes adds an opaque inner container directly inside
+ * layer-modal. Keep that wrapper transparent so the shell above is
+ * what the user actually sees.
+ */
+#app-mount [data-mana-component="layer-modal"] > [class*="container_"] {
+    background:
+        transparent !important;
+}
+
+/*
+ * Settings header strip.
+ */
+#app-mount [data-mana-component="layer-modal"] [class*="contentHeader_"] {
+    background:
+        rgba(255, 255, 255, 0.055) !important;
+
+    border-bottom:
+        1px solid var(--pixelff-border) !important;
+
+    backdrop-filter:
+        blur(10px)
+        saturate(1.08);
+}
+
+/*
+ * Keep standard Settings surfaces transparent inside BetterSettings.
+ */
+#app-mount [data-mana-component="layer-modal"] [class*="standardSidebarView_"],
+#app-mount [data-mana-component="layer-modal"] [class*="contentRegion_"],
+#app-mount [data-mana-component="layer-modal"] [class*="contentRegionScroller_"],
+#app-mount [data-mana-component="layer-modal"] [class*="sidebarRegion_"],
+#app-mount [data-mana-component="layer-modal"] [class*="sidebarRegionScroller_"] {
+    background-color:
+        transparent !important;
+}
+
+/*
+ * Frosted Settings navigation column.
+ */
+#app-mount [data-mana-component="layer-modal"] [class*="sidebarRegionScroller_"] {
+    background:
+        rgba(255, 255, 255, 0.070) !important;
+
+    border-right:
+        1px solid var(--pixelff-border) !important;
+
+    backdrop-filter:
+        blur(12px)
+        saturate(1.08)
+        brightness(1.04);
+}
+
+/*
+ * Frosted Settings content area.
+ */
+#app-mount [data-mana-component="layer-modal"] [class*="contentRegionScroller_"] {
+    background:
+        rgba(255, 255, 255, 0.032) !important;
+
+    backdrop-filter:
+        blur(10px)
+        saturate(1.06)
+        brightness(1.03);
+}
+
+/*
+ * BetterSettings close control.
+ */
+#app-mount [data-mana-component="layer-modal"] [class*="contentHeader_"] button {
+    border-radius:
+        8px !important;
+}
+
+
+/* ============================================================
+ * SETTINGS UI
+ * ============================================================
+ *
+ * Discord's User Settings / Vencord Settings use a separate
+ * full-screen layout from the normal server/chat workspace.
+ *
+ * This section gives Settings the same PixelFF frosted-glass
+ * treatment as the rest of Discord:
+ *
+ * - wallpaper remains visible behind Settings
+ * - sidebar and content use light frosted glass rather than dark slabs
+ * - selected settings tabs use the PixelFF gradient system
+ * - cards, inputs, dropdowns, switches, and buttons match the theme
+ *
+ * IMPORTANT:
+ * Keep this section scoped under standardSidebarView whenever
+ * possible. Settings reuses many generic Discord class names.
+ */
+
+/*
+ * Remove Discord's opaque full-screen Settings backing layer.
+ */
+#app-mount [class*="layer_"]:has([class*="standardSidebarView_"]),
+#app-mount [class*="standardSidebarView_"],
+#app-mount [class*="contentRegion_"],
+#app-mount [class*="contentRegionScroller_"],
+#app-mount [class*="sidebarRegion_"],
+#app-mount [class*="sidebarRegionScroller_"] {
+    background-color: transparent !important;
+}
+
+/*
+ * Main Settings shell.
+ *
+ * A small amount of blur keeps text readable while leaving the
+ * wallpaper clearly visible.
+ */
+#app-mount [class*="standardSidebarView_"] {
+    background:
+        linear-gradient(
+            120deg,
+            color-mix(in srgb, var(--pixelff-cyan) 3%, transparent),
+            transparent 35%,
+            color-mix(in srgb, var(--pixelff-purple) 3%, transparent) 70%,
+            color-mix(in srgb, var(--pixelff-magenta) 2%, transparent)
+        ) !important;
+
+    backdrop-filter:
+        blur(10px)
+        saturate(1.06)
+        brightness(1.03);
+}
+
+/*
+ * Settings navigation sidebar.
+ *
+ * Use pale frosted glass instead of a dark panel.
+ */
+#app-mount [class*="standardSidebarView_"] [class*="sidebarRegionScroller_"] {
+    background:
+        rgba(255, 255, 255, 0.075) !important;
+
+    border-right:
+        1px solid var(--pixelff-border);
+
+    backdrop-filter:
+        blur(12px)
+        saturate(1.08)
+        brightness(1.04);
+}
+
+/*
+ * Main Settings content area.
+ */
+#app-mount [class*="standardSidebarView_"] [class*="contentRegionScroller_"] {
+    background:
+        rgba(255, 255, 255, 0.045) !important;
+
+    backdrop-filter:
+        blur(10px)
+        saturate(1.06)
+        brightness(1.03);
+}
+
+/*
+ * Let Settings content use the available width more naturally.
+ */
+#app-mount [class*="standardSidebarView_"] [class*="contentColumn_"],
+#app-mount [class*="standardSidebarView_"] [class*="customColumn_"] {
+    max-width: none !important;
+}
+
+/*
+ * Settings sidebar section labels.
+ */
+#app-mount [class*="standardSidebarView_"] [class*="side_"] [class*="header_"] {
+    color:
+        color-mix(
+            in srgb,
+            var(--pixelff-cyan) 65%,
+            white
+        ) !important;
+
+    text-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.45);
+}
+
+/*
+ * Normal Settings navigation item.
+ */
+#app-mount [class*="standardSidebarView_"] [class*="side_"] [class*="item_"] {
+    border-radius:
+        8px !important;
+
+    transition:
+        background-color 0.15s ease,
+        box-shadow 0.15s ease,
+        color 0.15s ease;
+}
+
+/*
+ * Settings navigation hover.
+ */
+#app-mount [class*="standardSidebarView_"] [class*="side_"] [class*="item_"]:hover {
+    background:
+        color-mix(
+            in srgb,
+            var(--pixelff-purple) 10%,
+            rgba(255, 255, 255, 0.05)
+        ) !important;
+}
+
+/*
+ * Selected Settings navigation item.
+ *
+ * Intentionally bright, matching the easy-to-spot selected
+ * channel treatment used elsewhere in PixelFF.
+ */
+#app-mount [class*="standardSidebarView_"] [class*="side_"] [class*="item_"][class*="selected_"] {
+    background:
+        linear-gradient(
+            90deg,
+            color-mix(in srgb, var(--pixelff-cyan) 24%, rgba(255, 255, 255, 0.05)),
+            color-mix(in srgb, var(--pixelff-blue) 18%, rgba(255, 255, 255, 0.045)),
+            color-mix(in srgb, var(--pixelff-purple) 20%, rgba(255, 255, 255, 0.04))
+        ) !important;
+
+    box-shadow:
+        inset 3px 0 0 var(--pixelff-cyan),
+        inset 0 0 20px color-mix(in srgb, var(--pixelff-purple) 10%, transparent);
+
+    color:
+        white !important;
+}
+
+/*
+ * Settings section dividers.
+ */
+#app-mount [class*="standardSidebarView_"] [class*="separator_"],
+#app-mount [class*="standardSidebarView_"] [class*="divider_"],
+#app-mount [class*="standardSidebarView_"] hr {
+    border-color:
+        var(--pixelff-border) !important;
+
+    background-color:
+        var(--pixelff-border) !important;
+}
+
+/*
+ * Settings cards / bordered content groups.
+ *
+ * This also catches many Vencord settings cards while staying
+ * scoped to the Settings screen.
+ */
+#app-mount [class*="standardSidebarView_"] [class*="card_"],
+#app-mount [class*="standardSidebarView_"] [class*="accountProfileCard_"],
+#app-mount [class*="standardSidebarView_"] [class*="connectionList_"] {
+    background:
+        rgba(255, 255, 255, 0.065) !important;
+
+    border:
+        1px solid var(--pixelff-border) !important;
+
+    border-radius:
+        var(--pixelff-radius) !important;
+
+    backdrop-filter:
+        blur(8px)
+        saturate(1.05);
+}
+
+/*
+ * Inputs, text areas, search fields, and selects.
+ */
+#app-mount [class*="standardSidebarView_"] input,
+#app-mount [class*="standardSidebarView_"] textarea,
+#app-mount [class*="standardSidebarView_"] [role="combobox"],
+#app-mount [class*="standardSidebarView_"] [class*="input_"],
+#app-mount [class*="standardSidebarView_"] [class*="select_"] {
+    background:
+        rgba(255, 255, 255, 0.07) !important;
+
+    border-color:
+        var(--pixelff-border) !important;
+
+    border-radius:
+        8px !important;
+}
+
+/*
+ * Input focus gets a crisp cyan edge.
+ */
+#app-mount [class*="standardSidebarView_"] input:focus,
+#app-mount [class*="standardSidebarView_"] textarea:focus,
+#app-mount [class*="standardSidebarView_"] [role="combobox"]:focus-within {
+    border-color:
+        color-mix(
+            in srgb,
+            var(--pixelff-cyan) 65%,
+            var(--pixelff-border)
+        ) !important;
+
+    box-shadow:
+        0 0 0 1px
+        color-mix(
+            in srgb,
+            var(--pixelff-cyan) 24%,
+            transparent
+        ) !important;
+}
+
+/*
+ * Discord and Vencord switches.
+ */
+#app-mount [class*="standardSidebarView_"] [role="switch"],
+#app-mount [class*="standardSidebarView_"] .vc-switch-container {
+    background:
+        rgba(255, 255, 255, 0.12) !important;
+
+    border:
+        1px solid var(--pixelff-border) !important;
+}
+
+/*
+ * Enabled switches.
+ */
+#app-mount [class*="standardSidebarView_"] [role="switch"][aria-checked="true"],
+#app-mount [class*="standardSidebarView_"] .vc-switch-container.vc-switch-checked {
+    background:
+        linear-gradient(
+            90deg,
+            var(--pixelff-blue),
+            var(--pixelff-purple)
+        ) !important;
+
+    border-color:
+        color-mix(
+            in srgb,
+            var(--pixelff-cyan) 40%,
+            transparent
+        ) !important;
+}
+
+/*
+ * Secondary / neutral Settings buttons.
+ *
+ * Brand buttons are already handled globally by the PixelFF accent
+ * system, so this focuses on ordinary gray Settings actions.
+ */
+#app-mount [class*="standardSidebarView_"] button:not([class*="colorRed_"]):not([class*="colorBrand_"]) {
+    border-color:
+        var(--pixelff-border) !important;
+}
+
+/*
+ * Vencord Quick Action-style buttons and ordinary filled controls
+ * get a light frosted surface.
+ */
+#app-mount [class*="standardSidebarView_"] button[class*="lookFilled_"]:not([class*="colorBrand_"]):not([class*="colorRed_"]) {
+    background:
+        rgba(255, 255, 255, 0.09) !important;
+}
+
+#app-mount [class*="standardSidebarView_"] button[class*="lookFilled_"]:not([class*="colorBrand_"]):not([class*="colorRed_"]):hover {
+    background:
+        color-mix(
+            in srgb,
+            var(--pixelff-cyan) 10%,
+            rgba(255, 255, 255, 0.10)
+        ) !important;
+}
+
+/*
+ * Settings close button.
+ */
+#app-mount [class*="standardSidebarView_"] [class*="closeButton_"] {
+    border-color:
+        color-mix(
+            in srgb,
+            var(--pixelff-cyan) 55%,
+            var(--pixelff-border)
+        ) !important;
+
+    background:
+        rgba(255, 255, 255, 0.06) !important;
+
+    color:
+        var(--pixelff-cyan) !important;
+}
+
+#app-mount [class*="standardSidebarView_"] [class*="closeButton_"]:hover {
+    background:
+        color-mix(
+            in srgb,
+            var(--pixelff-purple) 16%,
+            rgba(255, 255, 255, 0.08)
+        ) !important;
+}
+
+/*
+ * Settings headings.
+ *
+ * Keep normal text mostly neutral, but give top-level headings a
+ * restrained cyan-to-purple accent so Settings feels deliberately
+ * part of PixelFF rather than default Discord.
+ */
+#app-mount [class*="standardSidebarView_"] h1,
+#app-mount [class*="standardSidebarView_"] h2 {
+    text-shadow:
+        var(--pixelff-text-shadow);
+}
+
+#app-mount [class*="standardSidebarView_"] h1 {
+    color:
+        color-mix(
+            in srgb,
+            var(--pixelff-cyan) 35%,
+            white
+        ) !important;
+}
+
+/*
+ * Settings links remain cyan.
+ */
+#app-mount [class*="standardSidebarView_"] a {
+    color:
+        var(--pixelff-cyan) !important;
+}
+
+
+/* ============================================================
+ * CARDS / CONTENT PANELS
+ * ============================================================
+ */
+
+[class*="card_"] {
+    background: rgba(12, 15, 22, 0.66) !important;
+    border: 1px solid var(--pixelff-border);
+}
+
+/* ============================================================
+ * MESSAGE ACCESSORIES / EMBEDS / POLLS
+ * ============================================================
+ *
+ * Soften Discord's darker message-attached surfaces so they fit
+ * the translucent glass look instead of appearing as black boxes.
+ */
+
+/* embeds, link previews, attachment-style cards */
+[class*="embed_"],
+[class*="embedWrapper_"],
+[class*="wrapper_"][class*="embed"],
+[class*="attachment_"] {
+    background: rgba(10, 12, 18, 0.58) !important;
+    border-color: var(--pixelff-border) !important;
+}
+
+/* poll container */
+[class*="pollContainer_"],
+[class*="poll_"] {
+    background: rgba(10, 12, 18, 0.56) !important;
+    border: 1px solid var(--pixelff-border) !important;
+}
+
+/* poll answer rows */
+[class*="answer_"],
+[class*="answerInner_"] {
+    background: rgba(255, 255, 255, 0.06) !important;
+}
+
+    /* selected / voted poll choice */
+    [class*="answer_"][class*="selected_"],
+    [class*="answerInner_"][class*="selected_"] {
+        background: color-mix( in srgb, var(--pixelff-accent) 22%, rgba(255, 255, 255, 0.05) ) !important;
+    }
+
+/* quoted/referenced message bars and reply previews */
+[class*="repliedMessage_"],
+[class*="referencedMessage_"] {
+    background: rgba(8, 10, 15, 0.42) !important;
+}
+
+/* dark strips used around some message/link content */
+[class*="container_"][class*="message"],
+[class*="wrapper_"][class*="message"] {
+    background-color: transparent !important;
+}
+
+/* improve readability inside embeds/link previews */
+[class*="embedTitle_"],
+[class*="embedDescription_"],
+[class*="embedAuthor_"],
+[class*="embedFooter_"] {
+    text-shadow: var(--pixelff-text-shadow);
+}
+
+
+/* ============================================================
+ * TEXT READABILITY
+ * ============================================================
+ *
+ * Keep text readable over detailed or bright wallpapers.
+ */
+
+[class*="username_"],
+[class*="messageContent_"],
+[class*="name_"],
+[class*="title_"],
+[class*="topic_"],
+[class*="headerText_"],
+[class*="channelName_"] {
+    text-shadow: var(--pixelff-text-shadow);
+}
+
+/*
+ * Member list text gets a slightly stronger shadow because the
+ * right-side panel is intentionally more transparent.
+ */
+[class*="members_"] [class*="name_"],
+[class*="members_"] [class*="username_"] {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+}
+
+
+/* ============================================================
+ * PIXELFF ACCENT SYSTEM
+ * ============================================================
+ *
+ * Use the PixelFF cyan / blue / purple / magenta palette as restrained
+ * interaction accents. The wallpaper and server role colors remain the
+ * visual stars; these rules provide a consistent PixelFF identity without
+ * recoloring every piece of Discord.
+ */
+
+/*
+ * Links use cyan because it remains readable against both the darker glass
+ * panels and brighter wallpaper areas.
+ */
+a {
+    color: var(--pixelff-cyan) !important;
+}
+
+    a:hover {
+        color: color-mix( in srgb, var(--pixelff-cyan) 72%, white ) !important;
+    }
+
+/*
+ * Selected channels receive a subtle blue-to-purple glass tint with a cyan
+ * edge. This is intentionally restrained so category/channel text remains
+ * easy to read.
+ */
+[class*="modeSelected_"] [class*="link_"] {
+    background: linear-gradient( 90deg, color-mix( in srgb, var(--pixelff-blue) 18%, transparent ), color-mix( in srgb, var(--pixelff-purple) 12%, transparent ) ) !important;
+    box-shadow: inset 3px 0 0 var(--pixelff-cyan);
+    border-radius: 8px;
+}
+
+/*
+ * Channel hover gets only a whisper of purple rather than a solid fill.
+ */
+[class*="containerDefault_"]:hover [class*="link_"] {
+    background: color-mix( in srgb, var(--pixelff-purple) 9%, transparent ) !important;
+}
+
+/*
+ * Unread channel marker.
+ *
+ * Scope this specifically to the channel list and force it back
+ * into a small indicator instead of allowing Discord's broader
+ * unread containers to become solid magenta blocks.
+ */
+#channels [class*="unread_"] {
+    background: var(--pixelff-magenta) !important;
+    width: 3px !important;
+    height: 8px !important;
+    border-radius: 0 4px 4px 0 !important;
+    box-shadow: 0 0 6px color-mix( in srgb, var(--pixelff-magenta) 45%, transparent ) !important;
+}
+
+/*
+ * Messages that mention the current user receive a soft magenta wash and a
+ * stronger magenta edge.
+ */
+[class*="mentioned_"] {
+    --background-mentioned: color-mix( in srgb, var(--pixelff-magenta) 14%, transparent ) !important;
+    --background-mentioned-hover: color-mix( in srgb, var(--pixelff-magenta) 18%, transparent ) !important;
+    border-left: 3px solid color-mix( in srgb, var(--pixelff-magenta) 85%, var(--pixelff-purple) ) !important;
+}
+
+/*
+ * Inline @mentions use cyan/blue instead of Discord's default blurple.
+ */
+[class*="mention_"] {
+    color: var(--pixelff-cyan) !important;
+    background: color-mix( in srgb, var(--pixelff-blue) 16%, transparent ) !important;
+    border-radius: 4px;
+}
+
+/*
+ * Brand-style filled buttons use the blue-to-purple half of the palette.
+ * This catches many primary Discord actions without altering danger buttons.
+ */
+[class*="lookFilled_"][class*="colorBrand_"] {
+    background: linear-gradient( 90deg, var(--pixelff-blue), var(--pixelff-purple) ) !important;
+    border: 1px solid color-mix( in srgb, var(--pixelff-cyan) 30%, transparent ) !important;
+}
+
+    [class*="lookFilled_"][class*="colorBrand_"]:hover {
+        filter: brightness(1.12);
+    }
+
+/*
+ * Selected reactions receive a small PixelFF tint while ordinary reactions
+ * retain Discord's normal neutral styling.
+ */
+[class*="reaction_"][class*="reactionMe_"],
+[class*="reaction_"][class*="selected_"] {
+    background: color-mix( in srgb, var(--pixelff-purple) 18%, transparent ) !important;
+    border-color: color-mix( in srgb, var(--pixelff-cyan) 45%, var(--pixelff-border) ) !important;
+}
+
+/*
+ * Focus rings use cyan so keyboard navigation remains clear and accessible.
+ */
+:focus-visible {
+    outline: 2px solid color-mix( in srgb, var(--pixelff-cyan) 80%, white ) !important;
+    outline-offset: 2px;
+}
+
+/*
+ * Hovered cards and popouts get a very subtle cyan border lift.
+ *
+ * Do not apply a glow here. The background image already carries plenty of
+ * visual texture and the glass should remain calm.
+ */
+[class*="card_"]:hover,
+[class*="menu_"]:hover,
+[class*="popout_"]:hover {
+    border-color: color-mix( in srgb, var(--pixelff-cyan) 28%, var(--pixelff-border) ) !important;
+}
+
+
+/* ============================================================
+ * BUTTONS
+ * ============================================================
+ */
+
+button {
+    border-radius: 8px;
+}
+
+
+/* ============================================================
+ * SCROLLBARS
+ * ============================================================
+ */
+
+::-webkit-scrollbar-thumb {
+    background: color-mix( in srgb, var(--pixelff-purple) 26%, rgba(255, 255, 255, 0.12) ) !important;
+    border-radius: 999px;
+}
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: color-mix( in srgb, var(--pixelff-cyan) 30%, rgba(255, 255, 255, 0.18) ) !important;
+    }
+
+
+/* ============================================================
+ * OPTIONAL GLASS EFFECT
+ * ============================================================
+ *
+ * Gives major panels a subtle blur without turning Discord into
+ * frosted shower glass.
+ */
+
+[class*="sidebar_"],
+[class*="chat_"],
+[class*="membersWrap_"],
+[class*="panels_"] {
+    backdrop-filter:
+        blur(4px)
+        saturate(1.08)
+        brightness(1.04);
+}
+
+/* ============================================================
+ * PIXELFF TITLEBAR BRANDING
+ * ============================================================
+ *
+ * Keep the titlebar loud and unmistakably PixelFF while leaving
+ * the rest of Discord calm and frosted.
+ *
+ * Scope the branding to the bar that actually contains Discord's
+ * back/forward control group. This avoids touching other "bar"
+ * components elsewhere in the app.
+ */
+
+div[class*="bar_"]:has(div[class*="backForwardButtons"]) {
+    position: relative !important;
+}
+
+/*
+ * PixelFF wordmark.
+ *
+ * Use clipped gradient text with a small drop-shadow rather than
+ * text-shadow. text-shadow on transparent gradient text can render
+ * as a fuzzy colored smudge in Chromium/Electron.
+ */
+div[class*="bar_"]:has(div[class*="backForwardButtons"])::before {
+    content: "PixelFF";
+
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+
+    width: max-content;
+    white-space: nowrap;
+
+    font-family: "Segoe UI", sans-serif;
+    font-size: 16px;
+    font-weight: 900;
+    letter-spacing: 0.4px;
+    line-height: 1;
+
+    background:
+        linear-gradient(
+            90deg,
+            var(--pixelff-cyan) 0%,
+            var(--pixelff-blue) 30%,
+            var(--pixelff-purple) 60%,
+            var(--pixelff-magenta) 100%
+        );
+
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+
+    filter:
+        drop-shadow(0 0 3px rgba(65, 230, 255, 0.28))
+        drop-shadow(0 0 3px rgba(255, 79, 216, 0.20));
+
+    pointer-events: none;
+    z-index: 9999;
+}
+
+/*
+ * Shift ONLY the actual back / forward arrow group.
+ */
+div[class*="bar_"]:has(div[class*="backForwardButtons"])
+    div[class*="backForwardButtons"] {
+    margin-left: 92px !important;
+    flex-shrink: 0 !important;
+}
+
+/* ============================================================
+ * VOICE CONNECTION CARD
+ * ============================================================
+ *
+ * Fix the middle Voice Connected panel when streaming.
+ *
+ * This targets Discord's current e131a9 voice panel directly,
+ * so the stream card above and user/account card below remain
+ * completely untouched.
+ */
+
+/*
+ * Main Voice Connected card.
+ *
+ * Force a clean two-row layout:
+ *
+ * Row 1 = connection status + voice controls
+ * Row 2 = camera / screen share / activities / soundboard
+ */
+#app-mount .container_e131a9 {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 8px !important;
+    gap: 8px !important;
+    overflow: visible !important;
+    box-sizing: border-box !important;
+}
+
+
+/*
+ * Top connection row.
+ */
+#app-mount .connection_e131a9 {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 36px !important;
+    gap: 6px !important;
+}
+
+
+/*
+ * Voice Connected / channel-name text gets the available space.
+ */
+#app-mount .inner_e131a9 {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    overflow: visible !important;
+}
+
+
+/*
+ * Krisp + Disconnect controls stay on the right side
+ * instead of stealing space from the status text.
+ */
+#app-mount .voiceButtonsContainer_e131a9 {
+    flex: 0 0 auto !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 2px !important;
+}
+
+
+/*
+ * Bottom four action buttons.
+ */
+#app-mount .actionButtons_e131a9 {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    width: 100% !important;
+    gap: 6px !important;
+    margin: 0 !important;
+}
+
+
+    /*
+ * Keep all four buttons compact and equal-sized.
+ */
+    #app-mount .actionButtons_e131a9 .button_e131a9 {
+        width: 100% !important;
+        min-width: 0 !important;
+        height: 32px !important;
+        min-height: 32px !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+
+/*
+ * Make sure the Voice Connected text itself isn't clipped.
+ */
+#app-mount .container_e131a9 .rtcConnectionStatusWrapper__06d62,
+#app-mount .container_e131a9 .rtcConnectionStatus__06d62,
+#app-mount .container_e131a9 .labelWrapper__06d62 {
+    min-width: 0 !important;
+    overflow: visible !important;
+}
+
+/* ============================================================
+ * END
+ * ============================================================
+ */
