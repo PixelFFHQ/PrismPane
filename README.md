@@ -144,6 +144,18 @@ The official default wallpaper library used by PrismPick and PrismPane.
 
 ---
 
+## Branding
+
+The MPL-2.0 license applies to the PrismPane source/theme files, not to the PixelFF, PrismPane, or PrismPick names,
+logos, or associated branding.
+
+Forks and modified versions may identify themselves as being based on PrismPane, but must not represent themselves as
+official PixelFF releases.
+
+Original copyright and license notices must remain intact.
+
+---
+
 ## About PixelFF
 
 PrismPane is developed by **PixelFF**.
