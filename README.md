@@ -154,6 +154,14 @@ The official default wallpaper library used by PrismPick and PrismPane.
 
 ---
 
+## License
+
+PrismPick is licensed under the **Mozilla Public License 2.0**.
+
+See the [`LICENSE`](LICENSE) file for the full license text.
+
+---
+
 ## Branding
 
 The MPL-2.0 license applies to the PrismPane source/theme files, not to the PixelFF, PrismPane, or PrismPick names,
