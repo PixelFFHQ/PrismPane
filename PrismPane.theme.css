@@ -52,10 +52,10 @@
 
 :root {
     /*
-     * PrismPick writes to this variable.
+     * PrismPane's default wallpaper.
      *
-     * Leave empty here.
-     * The plugin will replace it dynamically.
+     * PrismPick overrides this variable dynamically when
+     * the user selects another wallpaper.
      */
     --background-image-url: url("https://pixelffhq.github.io/PrismPick-Wallpapers/backgrounds/PrismPane-Default.png");
     /*
