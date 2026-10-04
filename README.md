@@ -61,3 +61,91 @@ PrismPane uses:
 
 ```css
 --background-image-url
+```
+
+The included default wallpaper is loaded automatically.
+
+PrismPick can override this variable whenever another wallpaper is selected.
+
+You can also manually replace the value inside the theme:
+
+```css
+--background-image-url: url("YOUR-IMAGE-URL");
+```
+
+---
+
+## Customization
+
+PrismPane exposes several variables near the top of the theme file.
+
+### Wallpaper
+
+```css
+--pixelff-bg-size: cover;
+--pixelff-bg-position: center;
+--pixelff-bg-repeat: no-repeat;
+--pixelff-bg-dim: 0.08;
+```
+
+### PixelFF Colors
+
+```css
+--pixelff-cyan: #41e6ff;
+--pixelff-blue: #4f7cff;
+--pixelff-purple: #8b5cff;
+--pixelff-magenta: #ff4fd8;
+```
+
+### User Panel Text
+
+```css
+--pixelff-user-name-size: 18px;
+--pixelff-user-status-size: 15px;
+```
+
+---
+
+## Default Wallpaper
+
+The default PrismPane wallpaper is hosted through the official PixelFF PrismPick wallpaper library:
+
+**PixelFFHQ / PrismPick-Wallpapers**
+
+Additional wallpapers can be selected through PrismPick.
+
+---
+
+## Compatibility
+
+PrismPane is designed for current Discord builds using Vencord.
+
+Discord frequently changes internal class names. Some visual elements may require updates after major Discord UI changes.
+
+If something suddenly looks incorrect after a Discord update, please open an issue in this repository.
+
+---
+
+## Screenshots
+
+Screenshots coming soon.
+
+---
+
+## Related Projects
+
+### PrismPick
+
+The companion Vencord wallpaper picker for PrismPane.
+
+### PrismPick-Wallpapers
+
+The official default wallpaper library used by PrismPick and PrismPane.
+
+---
+
+## About PixelFF
+
+PrismPane is developed by **PixelFF**.
+
+Built by **Hush / PixelFF**.
