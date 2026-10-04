@@ -128,17 +128,27 @@ If something suddenly looks incorrect after a Discord update, please open an iss
 
 ## Screenshots
 
-Screenshots coming soon.
+### Server View
+
+![PrismPane Server View](screenshots/PrismPane-Server.png)
+
+### Channel Styling
+
+![PrismPane Channel Styling](screenshots/PrismPane-Channels.png)
+
+### Settings
+
+![PrismPane Settings](screenshots/PrismPane-Settings.png)
 
 ---
 
 ## Related Projects
 
-### PrismPick
+### [PrismPick](https://github.com/PixelFFHQ/PrismPick)
 
 The companion Vencord wallpaper picker for PrismPane.
 
-### PrismPick-Wallpapers
+### [PrismPick-Wallpapers](https://github.com/PixelFFHQ/PrismPick-Wallpapers)
 
 The official default wallpaper library used by PrismPick and PrismPane.
 
